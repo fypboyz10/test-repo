@@ -19,6 +19,9 @@ def mod(x,y):
 #added comments
 #123
 #some more tests are added to check 
+#multi
+#line
+#comments
 
 print("Select operation:")
 print("1. Add")
