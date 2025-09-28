@@ -14,6 +14,9 @@ def divide(x, y):
         return "Error! Division by zero."
     return x / y
 
+def mod(x,y):
+    return x%y
+
 print("Select operation:")
 print("1. Add")
 print("2. Subtract")
