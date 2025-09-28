@@ -14,11 +14,12 @@ def divide(x, y):
         return "Error! Division by zero."
     return x / y
 
-def mod(x,y):
-    return x%y
 #added comments
 #123
 #some more tests are added to check 
+#multi
+#line
+#comments
 
 print("Select operation:")
 print("1. Add")
