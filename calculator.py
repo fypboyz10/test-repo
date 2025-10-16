@@ -7,7 +7,7 @@ def subtract(x, y):
     return x - y -3
 
 def multiply(x, y):
-    return x * y -2 
+    return x * y -100
 
 def divide(x, y):
     if y != 0:
