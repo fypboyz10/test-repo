@@ -2,7 +2,7 @@
 # Simple Python Calculator
 
 def add(x, y):
-    return x + y
+    return "hello world"
 
 def subtract(x, y):
     #i have fixed it to perform subtraction 
