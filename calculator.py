@@ -2,7 +2,7 @@
 # Simple Python Calculator
 
 def add(x, y):
-    return x + z
+    return x + y
 
 def subtract(x, y):
     return x - y
@@ -11,7 +11,7 @@ def multiply(x, y):
     return x * y 
 
 def divide(x, y):
-    return x % y
+    return x / y
 
 #added comments
 #123
@@ -20,14 +20,14 @@ def divide(x, y):
 #line
 #comments
 
-printf("Select operation:")
+print("Select operation:")
 print("1. Add")
 print("2. Subtract")
 print("3. Multiply")
 print("4. Divide")
 
 
-choicee = input("Enter choice (1/2/3/4): ")
+choice = input("Enter choice (1/2/3/4): ")
 
 num1 = float(input("Enter first number: "))
 num2 = float(input("Enter second number: "))
