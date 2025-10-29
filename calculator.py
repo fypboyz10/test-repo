@@ -2,13 +2,12 @@
 # Simple Python Calculator
 
 def add(x, y):
-    return "hello world"
+    return x + y
 
 def subtract(x, y):
-    #i have fixed it to perform subtraction 
     return x - y
 
-def multiply(x,)
+def multiply(x, y):
     return x * y 
 
 def divide(x, y):
@@ -16,8 +15,6 @@ def divide(x, y):
         return "Error! Division by zero."
     return x / y
 
-def mod(x,y):
-    return x % y 
 #added comments
 #123
 #some more tests are added to check 
@@ -31,7 +28,8 @@ print("2. Subtract")
 print("3. Multiply")
 print("4. Divide")
 
-choice = input("Enter choice (1/2/3/4): "
+
+choice = input("Enter choice (1/2/3/4): ")
 
 num1 = float(input("Enter first number: "))
 num2 = float(input("Enter second number: "))
