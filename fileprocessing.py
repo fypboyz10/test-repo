@@ -3,7 +3,7 @@ import os
 
 def process_file(filename):
     try:
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding=config['encoding']) as f:  # Added encoding parameter
             content = f.read()
             return content.strip()
     except FileNotFoundError:
@@ -31,7 +31,7 @@ config = {
     'input_file': 'data.txt',
     'output_file': 'output.txt',
     'encoding': 'utf-8',
-    'mode': 'transform'
+    'mode': 'transform',
     'verbose': True,
     'debug': False
 }
@@ -43,7 +43,7 @@ if validate_data(data):
     print(f"Original: {data}")
     print(f"Transformed: {transformed}")
     
-    with open(config['output_file'], 'w') as f:
+    with open(config['output_file'], 'w', encoding=config['encoding']) as f:  # Added encoding parameter
         f.write(transformed)
     
     print(f"Output written to {config['output_file']}")
