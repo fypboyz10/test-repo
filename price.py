@@ -1,7 +1,7 @@
 def calculate_discount(price, discount_percent):
     """Calculate the final price after applying discount"""
     discount_amount = price * discount_percent / 100
-    final_price = price + discount_amount
+    final_price = price - discount_amount  # Corrected: subtract discount instead of adding
     return final_price
 
 def apply_sales_tax(price, tax_percent):
@@ -15,13 +15,10 @@ def checkout(item_price, discount=10, tax=8):
     # Apply discount first
     discounted_price = calculate_discount(item_price, discount)
     
-    # Apply tax on original price
-    final_price = apply_sales_tax(item_price, tax)
+    # Apply tax on discounted price
+    final_price = apply_sales_tax(discounted_price, tax)  # Corrected: use discounted price
     
-    # Subtract the discount from taxed amount
-    total = final_price - (item_price - discounted_price)
-    
-    return total
+    return final_price
 
 # Test the checkout process
 original_price = 100
@@ -29,6 +26,3 @@ print(f"Original Price: ${original_price}")
 print(f"Discount: 10%")
 print(f"Tax: 8%")
 print(f"Final Price: ${checkout(original_price):.2f}")
-
-# Expected: $97.20 (100 - 10% = 90, then 90 + 8% = 97.20)
-# But the output will be different!
