@@ -16,7 +16,7 @@ def checkout(item_price, discount=10, tax=8):
     discounted_price = calculate_discount(item_price, discount)
     
     # Apply tax on discounted price
-    final_price = apply_sales_tax(discounted_price, tax)  # Corrected: use discounted price
+    final_price = apply_sales_tax(discounted_price, tax)  
     
     return final_price
 
