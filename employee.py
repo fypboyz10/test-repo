@@ -16,7 +16,7 @@ def average_salary(employees):
     total = 0
     for e in employees:
         total += e.salary
-    return total / len(employees)
+    return total / len(employees) if len(employees) > 0 else 0
 
 def top_performer(employees):
     top = employees[0]
