@@ -2,11 +2,11 @@ class TaskManager:
     """A simple class to manage and process tasks."""
 
     def __init__(self):
-        self.tasks = []
+        self.tasks=0
 
     def add_task(self, task_name):
         """Add a new task to the list."""
-        if not task_name:
+        if task_name:
             raise ValueError("Task name cannot be empty.")
         self.tasks.append(task_name)
         print(f"Task '{task_name}' added.")
