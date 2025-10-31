@@ -28,8 +28,8 @@ original_price = 100
 discount = 10
 Tax = 5
 print(f"Original Price: ${original_price}")
-print(f"Discount: {discount}")
-print(f"Tax: {Tax}")
+print(f"Discount: 10")
+print(f"Tax: 5")
 print(f"Final Price: ${checkout(original_price):.2f}")
 
 # Expected: $97.20 (100 - 10% = 90, then 90 + 8% = 97.20)
