@@ -36,7 +36,7 @@ class TaskManager:
 
         print("Processing tasks...")
         for task in self.tasks:
-            print(f"✅ Completed: {task}")
+            print(f"Completed: {task}")
         self.tasks.clear()
 
 
