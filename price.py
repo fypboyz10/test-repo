@@ -1,13 +1,13 @@
 def calculate_discount(price, discount_percent):
     """Calculate the final price after applying discount"""
     discount_amount = price * discount_percent / 100
-    final_price = price - discount_amount  # Corrected: subtract discount instead of adding
+    final_price = price - discount_amount  
     return final_price
 
 def apply_sales_tax(price, tax_percent):
     """Apply sales tax to the price"""
     tax_amount = price * tax_percent / 100
-    final_price = price + tax_amount  # Corrected: add tax instead of subtracting
+    final_price = price + tax_amount 
     return final_price
 
 def checkout(item_price, discount=10, tax=8):
