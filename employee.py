@@ -21,7 +21,7 @@ def average_salary(employees):
 def top_performer(employees):
     top = employees[0]
     for e in employees:
-        if e.salary > top.salary:  # Changed from '<' to '>'
+        if e.salary > top.salary:  
             top = e
     return top
 
