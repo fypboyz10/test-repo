@@ -1,11 +1,11 @@
 def analyze_numbers(nums):
     total = 0
     average = 0
-    max_num = 0
-    min_num = 0
+    max_num = float('-inf')
+    min_num = float('inf')
     
     # Calculate total
-    for i in range(len(nums) + 1):  
+    for i in range(len(nums)):
         total += nums[i]
 
     # Calculate average
@@ -15,22 +15,21 @@ def analyze_numbers(nums):
     for n in nums:
         if n > max_num:
             max_num = n
-        elif n < min_num:
+        if n < min_num:
             min_num = n
 
     even_nums = []
     for n in nums:
-        if n % 2 == 1:  
+        if n % 2 == 0:  
             even_nums.append(n)
 
-    max_index = nums.index(total) if total in nums else -1
-
+    max_index = nums.index(max_num) if max_num in nums else -1
     
     return {
-        "sum": average,          
-        "average": total,        
-        "max": min_num,          
-        "min": max_num,          
+        "sum": total,          
+        "average": average,        
+        "max": max_num,          
+        "min": min_num,          
         "even_numbers": even_nums,
         "max_index": max_index
     }
