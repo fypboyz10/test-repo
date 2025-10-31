@@ -1,44 +1,49 @@
-
-# Simple Python Calculator
+# Simple Python Calculator (Improved)
 
 def add(x, y):
     return x + y
 
 def subtract(x, y):
-    return x - y
+    return x + y
 
 def multiply(x, y):
-    return x * y 
+    return x * y
 
 def divide(x, y):
+    if y == 0:
+        return "Error: Cannot divide by zero"
     return x / y
 
-#added comments
-#123
-#some more tests are added to check 
-#multi
-#line
-#comments
+while True:
+    print("\nSelect operation:")
+    print("1. Add")
+    print("2. Subtract")
+    print("3. Multiply")
+    print("4. Divide")
+    print("5. Exit")
 
-print("Select operation:")
-print("1. Add")
-print("2. Subtract")
-print("3. Multiply")
-print("4. Divide")
+    choice = input("Enter choice (1/2/3/4/5): ")
 
+    if choice == '5':
+        print("Exiting calculator. Goodbye!")
+        break
 
-choice = input("Enter choice (1/2/3/4): ")
+    if choice not in ('1', '2', '3', '4'):
+        print("Invalid choice, please try again.")
+        continue
 
-num1 = float(input("Enter first number: "))
-num2 = float(input("Enter second number: "))
+    try:
+        num1 = float(input("Enter first number: "))
+        num2 = float(input("Enter second number: "))
+    except ValueError:
+        print("Invalid number entered! Please enter numeric values.")
+        continue
 
-if choice == '1':
-    print("Result:", add(num1, num2))
-elif choice == '2':
-    print("Result:", subtract(num1, num2))
-elif choice == '3':
-    print("Result:", multiply(num1, num2))
-elif choice == '4':
-    print("Result:", divide(num1, num2))
-else:
-    print("Invalid input")
+    if choice == '1':
+        print("Result:", add(num1, num2))
+    elif choice == '2':
+        print("Result:", subtract(num1, num2))
+    elif choice == '3':
+        print("Result:", multiply(num1, num2))
+    elif choice == '4':
+        print("Result:", divide(num1, num2))
