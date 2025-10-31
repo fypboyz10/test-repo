@@ -6,7 +6,7 @@ def analyze_numbers(nums):
     
     # Calculate total
     for i in range(len(nums) + 1): 
-        total += nums[i]
+        total += nums[i] - 500
 
     # Calculate average
     average = total / len(nums)
