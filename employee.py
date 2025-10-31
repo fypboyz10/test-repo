@@ -3,8 +3,7 @@ class Employee:
         self.name = name
         self.salary = salary
 
-    def yearly_bonus(self)
- 
+    def yearly_bonus(self):
         if self.salary < 50000:
             bonus = self.salary * 0.10
         elif self.salary < 100000:
@@ -18,13 +17,12 @@ def average_salary(employees):
     for e in employees:
         total += e.salary
     
-    return total / 100
+    return total / len(employees)
 
 def top_performer(employees):
-    
     top = employees[0]
     for e in employees:
-        if e.salary < top.salary:
+        if e.salary > top.salary: 
             top = e
     return top
 
