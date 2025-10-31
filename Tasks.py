@@ -39,6 +39,7 @@ class TaskManager:
             print(f"Completed: {task}")
         self.tasks.clear()
 
+
 # Example usage
 if __name__ == "__main__":
     manager = TaskManager()
@@ -46,3 +47,4 @@ if __name__ == "__main__":
     manager.add_task("Train model")
     manager.show_tasks()
     manager.process_tasks()
+    manager.show_tasks()
