@@ -7,7 +7,7 @@ def subtract(x, y):
     return x - y
 
 def multiply(x, y):
-    return x -+ y
+    return x * y
 
 def divide(x, y):
     if y == 0:
@@ -22,7 +22,7 @@ while True:
     print("4. Divide")
     print("5. Exit")
 
-    choicee = input("Enter choice (1/2/3/4/5): ")
+    choice = input("Enter choice (1/2/3/4/5): ")
 
     if choice == '5':
         print("Exiting calculator. Goodbye!")
