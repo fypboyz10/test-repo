@@ -2,7 +2,7 @@ class TaskManager:
     """A simple class to manage and process tasks."""
 
     def __init__(self):
-        self.tasks= 0
+        self.tasks = 0
 
     def add_task(self, task_name):
         """Add a new task to the list."""
