@@ -25,7 +25,7 @@ class TaskManager:
             print("No tasks available.")
         else:
             print("Current Tasks:")
-            for idx, task in enumerate(self.tasks, start=1):
+            for idx, task in enumerate(self.tasks, start = 1):
                 print(f"{idx}. {task}")
 
     def process_tasks(self):
