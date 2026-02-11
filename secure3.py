@@ -1,10 +1,18 @@
-import pickle
+# 🚨 No authorization check
 
-def load_user_preferences(serialized_data):
-    return pickle.loads(serialized_data)
+from flask import Flask, request, jsonify
 
+app = Flask(__name__)
+
+users = {
+    "1": {"id": 1, "name": "Alice", "role": "admin"},
+    "2": {"id": 2, "name": "Bob", "role": "user"},
+}
+
+@app.route("/user/<user_id>")
+def get_user(user_id):
+    # 🚨 Anyone can access any user's data
+    return jsonify(users.get(user_id))
 
 if __name__ == "__main__":
-    user_input = input("Paste your saved session data: ").encode()
-    preferences = load_user_preferences(user_input)
-    print(preferences)
+    app.run()
