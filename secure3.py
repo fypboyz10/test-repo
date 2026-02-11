@@ -11,7 +11,6 @@ users = {
 
 @app.route("/user/<user_id>")
 def get_user(user_id):
-    # 🚨 Anyone can access any user's data
     return jsonify(users.get(user_id))
 
 if __name__ == "__main__":
