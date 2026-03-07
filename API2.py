@@ -1,12 +1,12 @@
-import requests
+import sqlite3
 
-API_KEY = "sk_live_123456789SECRETKEY"
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
 
-def get_data():
-    url = "https://api.example.com/data"
-    headers = {"Authorization": f"Bearer {API_KEY}"}
+username = input("Enter username: ")
 
-    response = requests.get(url, headers=headers)
-    print(response.json())
+query = f"SELECT * FROM users WHERE username = '{username}'"
 
-get_data()
+cursor.execute(query)
+
+print(cursor.fetchall())
