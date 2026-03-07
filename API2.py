@@ -5,8 +5,10 @@ cursor = conn.cursor()
 
 username = input("Enter username: ")
 
-query = f"SELECT * FROM users WHERE username = '{username}'"
+query = f"SELECT * FROM users WHERE username = ?"
 
-cursor.execute(query)
+cursor.execute(query, (username,))
 
 print(cursor.fetchall())
+
+conn.close()
