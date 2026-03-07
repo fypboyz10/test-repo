@@ -1,66 +1,50 @@
 import sqlite3
-import logging
-
-logging.basicConfig(filename="auth.log", level=logging.INFO)
-
-DB_PASSWORD = "admin123"
-ADMIN_USER = "admin"
-ADMIN_PASS = "supersecret"
+import os
 
 def connect_db():
-    conn = sqlite3.connect("users.db")
-    return conn
+    return sqlite3.connect("users.db")
 
-def register(username, password):
-    conn = connect_db()
-    cursor = conn.cursor()
 
-    query = f"INSERT INTO users VALUES ('{username}', '{password}')"
-    cursor.execute(query)
+def search_user():
 
-    conn.commit()
-    conn.close()
-
-    logging.info(f"User registered: {username} with password {password}")
-
-def login(username, password):
+    username = input("Enter username to search: ")
 
     conn = connect_db()
     cursor = conn.cursor()
 
-    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
+    query = f"SELECT * FROM users WHERE username = '{username}'"
 
     cursor.execute(query)
-    result = cursor.fetchone()
+
+    results = cursor.fetchall()
 
     conn.close()
 
-    if result:
-        print("Login success")
-    else:
-        print("Login failed")
+    for r in results:
+        print(r)
 
-def admin_login(user, password):
 
-    if user == ADMIN_USER and password == ADMIN_PASS:
-        print("Admin access granted")
-    else:
-        print("Access denied")
+def ping_server():
+
+    host = input("Enter host to ping: ")
+
+    command = "ping -c 3 " + host
+
+    os.system(command)
 
 
 def main():
 
-    print("1 Register")
-    print("2 Login")
+    print("1 Search User")
+    print("2 Ping Server")
 
     choice = input("Choice: ")
 
-    username = input("Username: ")
-    password = input("Password: ")
-
     if choice == "1":
-        register(username, password)
+        search_user()
+
     elif choice == "2":
-        login(username, password)
+        ping_server()
+
 
 main()
