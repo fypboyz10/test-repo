@@ -4,17 +4,15 @@ import os
 def connect_db():
     return sqlite3.connect("users.db")
 
-
 def search_user():
-
     username = input("Enter username to search: ")
 
     conn = connect_db()
     cursor = conn.cursor()
 
-    query = f"SELECT * FROM users WHERE username = '{username}'"
-
-    cursor.execute(query)
+    # Using parameterized queries to prevent SQL injection
+    query = "SELECT * FROM users WHERE username = ?"
+    cursor.execute(query, (username,))
 
     results = cursor.fetchall()
 
@@ -23,18 +21,14 @@ def search_user():
     for r in results:
         print(r)
 
-
 def ping_server():
-
     host = input("Enter host to ping: ")
 
-    command = "ping -c 3 " + host
-
-    os.system(command)
-
+    # Using subprocess instead of os.system to avoid shell injection
+    import subprocess
+    subprocess.run(["ping", "-c", "3", host], check=True)
 
 def main():
-
     print("1 Search User")
     print("2 Ping Server")
 
@@ -45,6 +39,5 @@ def main():
 
     elif choice == "2":
         ping_server()
-
 
 main()
