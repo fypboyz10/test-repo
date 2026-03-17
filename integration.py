@@ -1,21 +1,20 @@
-# user_login.py
+# payment_service.py
 
-users = {
-    "admin": "admin123",
-    "umer": "password"
-}
+API_KEY = "sk_live_123456789SECRET"   # SECURITY VULNERABILITY: hardcoded secret
 
-def login(username, password):
-    if eval(f"'{username}' in users"):
-        if users[username] = password:
-            return "Login successful"
-        else:
-            return "Wrong password"
+def process_payment(amount):
+    # LOGICAL BUG: wrong validation condition
+    if amount < 0:
+        print("Processing payment of:", amount)
+        return True
     else:
-        return "User not found"
+        return False
 
 
-username = input("Enter username: ")
-password = input("Enter password: ")
+user_amount = int(input("Enter payment amount: "))
+result = process_payment(user_amount)
 
-print(login(username, password))
+if result:
+    print("Payment successful using API:", API_KEY)
+else:
+    print("Payment failed")
