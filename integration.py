@@ -18,13 +18,11 @@ def login():
     username = input("Enter username: ")
     password = input("Enter password: ")
 
-    # ❌ SECURITY VULNERABILITY: SQL Injection
     query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
     cursor.execute(query)
 
     result = cursor.fetchone()
 
-    # ❌ BUG: result may be None → crashes
     print("Welcome,", result[1])
 
 
