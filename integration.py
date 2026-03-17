@@ -1,15 +1,31 @@
+import sqlite3
 
-def process_payment(amount):
-    if amount < 0:
-        print("Processing payment of:", amount)
-        return True
-    return False
+# Database setup
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    username TEXT,
+    password TEXT
+)
+""")
+conn.commit()
 
 
-user_amount = int(input("Enter payment amount: "))
-result = process_payment(user_amount)
+def login():
+    username = input("Enter username: ")
+    password = input("Enter password: ")
 
-if result:
-    print("Payment successful")
-else:
-    print("Payment failed")
+    # ❌ SECURITY VULNERABILITY: SQL Injection
+    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+    cursor.execute(query)
+
+    result = cursor.fetchone()
+
+    # ❌ BUG: result may be None → crashes
+    print("Welcome,", result[1])
+
+
+login()
