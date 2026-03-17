@@ -1,20 +1,22 @@
-import sqlite3
+from flask import Flask, request, jsonify
 
-conn = sqlite3.connect("users.db")
-cursor = conn.cursor()
+app = Flask(__name__)
 
-def login():
-    username = input("Enter username: ")
-    password = input("Enter password: ")
-
-    cursor.execute(
-        "SELECT * FROM users WHERE username=? AND password=?",
-        (username, password)
-    )
-
-    result = cursor.fetchone()
-
-    print("Welcome,", result[1])
+users = [
+    {"id": 1, "name": "Ali", "role": "user"},
+    {"id": 2, "name": "Sara", "role": "admin"}
+]
 
 
-login()
+@app.route("/delete_user", methods=["POST"])
+def delete_user():
+    user_id = request.json.get("id")
+
+    global users
+    users = [u for u in users if u["id"] != user_id]
+
+    return jsonify({"message": "User deleted"})
+
+
+if __name__ == "__main__":
+    app.run()
