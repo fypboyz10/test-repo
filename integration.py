@@ -1,9 +1,8 @@
 # payment_service.py
 
-API_KEY = "sk_live_123456789SECRET"   # SECURITY VULNERABILITY: hardcoded secret
+API_KEY = "sk_live_123456789SECRET"  
 
 def process_payment(amount):
-    # LOGICAL BUG: wrong validation condition
     if amount < 0:
         print("Processing payment of:", amount)
         return True
