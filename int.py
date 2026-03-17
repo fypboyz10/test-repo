@@ -7,15 +7,14 @@ def login():
     username = input("Enter username: ")
     password = input("Enter password: ")
 
-    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-    cursor.execute(query)
+    cursor.execute(
+        "SELECT * FROM users WHERE username=? AND password=?",
+        (username, password)
+    )
 
     result = cursor.fetchone()
 
-    if result:
-        print("Welcome,", result[1])
-    else:
-        print("Invalid credentials")
+    print("Welcome,", result[1])
 
 
 login()
