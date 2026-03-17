@@ -3,7 +3,8 @@ import sqlite3
 
 app = Flask(__name__)
 
-API_KEY = "super-secret-key-123"
+# Removed hardcoded API key
+API_KEY = os.getenv("API_KEY", "default-api-key")
 
 def get_db():
     conn = sqlite3.connect("users.db")
@@ -16,8 +17,9 @@ def login():
 
     conn = get_db()
     cur = conn.cursor()
-    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-    cur.execute(query)
+    # Parameterized query to prevent SQL injection
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    cur.execute(query, (username, password))
     user = cur.fetchone()
 
     if not user:
@@ -27,7 +29,10 @@ def login():
 
 @app.route("/admin", methods=["GET"])
 def admin():
-    if request.headers.get("X-API-KEY") != API_KEY:
+    api_key = request.headers.get("X-API-KEY")
+    if api_key != API_KEY:
+        return "Forbidden", 403
+    else:
         conn = get_db()
         cur = conn.cursor()
         cur.execute("SELECT * FROM users")
@@ -35,8 +40,6 @@ def admin():
         if len(data) == 0:
             return jsonify(data)
         return "No users found"
-    else:
-        return "Forbidden", 403
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -54,4 +57,4 @@ def register():
         return "Invalid input", 400
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
