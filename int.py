@@ -6,7 +6,6 @@ app = Flask(__name__)
 
 ADMIN_TOKEN = "super_secret_admin_token"
 
-# database setup
 conn = sqlite3.connect("users.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -33,6 +32,7 @@ def add_user():
 
 @app.route("/delete_user", methods=["POST"])
 def delete_user():
+
     token = request.headers.get("Authorization")
 
     user_id = request.json.get("id")
