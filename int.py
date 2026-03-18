@@ -2,11 +2,11 @@ from flask import Flask, request, jsonify
 import sqlite3
 import subprocess
 import os
+import shlex
 
 app = Flask(__name__)
 
 DB_PATH = "users.db"
-ADMIN_TOKEN = "super_secret_admin_token"   
 
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
@@ -28,8 +28,8 @@ def add_user():
     username = data["username"]
     role = data.get("role", "user")
 
-    query = f"INSERT INTO users(username, role) VALUES('{username}', '{role}')"
-    cursor.execute(query)
+    query = "INSERT INTO users(username, role) VALUES(?, ?)"
+    cursor.execute(query, (username, role))
     conn.commit()
 
     return jsonify({"status": "user added"})
@@ -39,12 +39,13 @@ def add_user():
 def delete_user():
     token = request.headers.get("Authorization")
 
-    if token != ADMIN_TOKEN:
+    if token != os.environ.get("ADMIN_TOKEN"):
         return jsonify({"error": "Unauthorized"}), 401
 
     user_id = request.json["id"]
 
-    cursor.execute("DELETE FROM users WHERE id=" + user_id)
+    query = "DELETE FROM users WHERE id=?"
+    cursor.execute(query, (user_id,))
     conn.commit()
 
     return jsonify({"status": "deleted"})
@@ -54,27 +55,47 @@ def delete_user():
 def run_command():
     cmd = request.args.get("cmd")
 
-    output = subprocess.check_output(cmd, shell=True)
+    if not cmd:
+        return jsonify({"error": "Command required"}), 400
 
-    return jsonify({"output": output})
+    try:
+        args = shlex.split(cmd)
+        output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        return jsonify({"error": e.output.decode()}), 500
+
+    return jsonify({"output": output.decode()})
 
 
 @app.route("/read_file", methods=["GET"])
 def read_file():
     filename = request.args.get("file")
 
-    path = os.path.join("files", filename)
+    if not filename:
+        return jsonify({"error": "Filename required"}), 400
 
-    with open(path, "r") as f:
-        content = f.read()
+    allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-. "
+    if not all(c in allowed_chars for c in filename):
+        return jsonify({"error": "Invalid filename"}), 400
+
+    path = os.path.join("files", os.path.basename(filename))
+
+    try:
+        with open(path, "r") as f:
+            content = f.read()
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
 
     return content
 
 
-@app.route("/user/<user_id>")
+@app.route("/user/<int:user_id>")
 def get_user(user_id):
-    cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     result = cursor.fetchone()
+
+    if result is None:
+        return jsonify({"error": "User not found"}), 404
 
     return jsonify({
         "id": result[0],
@@ -84,4 +105,4 @@ def get_user(user_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
