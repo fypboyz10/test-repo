@@ -1,19 +1,21 @@
 from flask import Flask, request, jsonify
-import subprocess
 import sqlite3
+import subprocess
+import os
 
 app = Flask(__name__)
 
-ADMIN_TOKEN = "super_secret_admin_token"
+DB_PATH = "users.db"
+ADMIN_TOKEN = "super_secret_admin_token"   # hardcoded secret
 
-# database setup
-conn = sqlite3.connect("users.db", check_same_thread=False)
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
 
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users(
     id INTEGER PRIMARY KEY,
-    username TEXT
+    username TEXT,
+    role TEXT
 )
 """)
 conn.commit()
@@ -23,40 +25,67 @@ conn.commit()
 def add_user():
     data = request.json
 
-    username = data.get("username")
+    username = data["username"]
+    role = data.get("role", "user")
 
-    cursor.execute("INSERT INTO users(username) VALUES (?)", (username,))
+    # SQL query built using string formatting
+    query = f"INSERT INTO users(username, role) VALUES('{username}', '{role}')"
+    cursor.execute(query)
     conn.commit()
 
-    return jsonify({"message": "User added"})
+    return jsonify({"status": "user added"})
 
 
 @app.route("/delete_user", methods=["POST"])
 def delete_user():
     token = request.headers.get("Authorization")
+
     if token != ADMIN_TOKEN:
-        return jsonify({"error": "Unauthorized"}), 403
+        return jsonify({"error": "Unauthorized"}), 401
 
-    user_id = request.json.get("id")
+    user_id = request.json["id"]
 
-    cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    # runtime bug + injection risk
+    cursor.execute("DELETE FROM users WHERE id=" + user_id)
     conn.commit()
 
-    return jsonify({"message": "User deleted"})
+    return jsonify({"status": "deleted"})
 
 
-@app.route("/ping", methods=["GET"])
-def ping_host():
-    host = request.args.get("host")
+@app.route("/run", methods=["GET"])
+def run_command():
+    cmd = request.args.get("cmd")
 
-    # Validate host to prevent command injection
-    if not host or ".." in host or "/" in host:
-        return jsonify({"error": "Invalid host"}), 400
+    # dangerous command execution
+    output = subprocess.check_output(cmd, shell=True)
 
-    result = subprocess.getoutput(f"ping -c 1 {host}")
+    return jsonify({"output": output})
 
-    return jsonify({"output": result})
+
+@app.route("/read_file", methods=["GET"])
+def read_file():
+    filename = request.args.get("file")
+
+    path = os.path.join("files", filename)
+
+    with open(path, "r") as f:
+        content = f.read()
+
+    return content
+
+
+@app.route("/user/<user_id>")
+def get_user(user_id):
+    cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+    result = cursor.fetchone()
+
+    # logic bug: crashes if user not found
+    return jsonify({
+        "id": result[0],
+        "username": result[1],
+        "role": result[2]
+    })
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
