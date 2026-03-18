@@ -1,19 +1,17 @@
-def longest_unique_substring(s):
-    char_set = set()
-    left = 0
-    max_length = 0
+import sqlite3
 
-    for right in range(len(s)):
-        while s[right] in char_set:
-            char_set.remove(s[left])
-            left += 1
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
 
-        char_set.add(s[right])
-        max_length = max(max_length, right - left + 1)
+username = input("Username: ")
+password = input("Password: ")
 
-    return max_length
+query = "SELECT * FROM users WHERE username = ? AND password = ?"
+cursor.execute(query, (username, password))
 
+result = cursor.fetchone()
 
-# Example
-text = "abcabcbb"
-print("Longest length:", longest_unique_substring(text))
+if result:
+    print("Login successful")
+else:
+    print("Invalid credentials")
