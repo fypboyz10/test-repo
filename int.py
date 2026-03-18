@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 DB_PATH = "users.db"
-ADMIN_TOKEN = "super_secret_admin_token"   # hardcoded secret
+ADMIN_TOKEN = "super_secret_admin_token"   
 
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
@@ -28,7 +28,6 @@ def add_user():
     username = data["username"]
     role = data.get("role", "user")
 
-    # SQL query built using string formatting
     query = f"INSERT INTO users(username, role) VALUES('{username}', '{role}')"
     cursor.execute(query)
     conn.commit()
@@ -45,7 +44,6 @@ def delete_user():
 
     user_id = request.json["id"]
 
-    # runtime bug + injection risk
     cursor.execute("DELETE FROM users WHERE id=" + user_id)
     conn.commit()
 
@@ -56,7 +54,6 @@ def delete_user():
 def run_command():
     cmd = request.args.get("cmd")
 
-    # dangerous command execution
     output = subprocess.check_output(cmd, shell=True)
 
     return jsonify({"output": output})
@@ -79,7 +76,6 @@ def get_user(user_id):
     cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
     result = cursor.fetchone()
 
-    # logic bug: crashes if user not found
     return jsonify({
         "id": result[0],
         "username": result[1],
