@@ -1,10 +1,19 @@
-text = "python is fun and python is easy"
+def longest_unique_substring(s):
+    char_set = set()
+    left = 0
+    max_length = 0
 
-words = text.split()
-freq = {}
+    for right in range(len(s)):
+        while s[right] in char_set:
+            char_set.remove(s[left])
+            left += 1
 
-for word in words:
-    freq[word] = freq.get(word, 0) + 1
+        char_set.add(s[right])
+        max_length = max(max_length, right - left + 1)
 
-for word, count in freq.items():
-    print(f"{word}: {count}")
+    return max_length
+
+
+# Example
+text = "abcabcbb"
+print("Longest length:", longest_unique_substring(text))
