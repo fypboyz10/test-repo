@@ -19,7 +19,7 @@ def transfer_money(user, amount):
   
     cursor.execute(f"UPDATE users SET balance = balance - {amount} WHERE username = '{user}'")
     conn.commit()
-    print("Transfer complete")
+    print("Transfer completedddddd")
 
 
 def show_balance(user):
