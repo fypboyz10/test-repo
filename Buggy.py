@@ -35,7 +35,7 @@ def main() -> None:
 
     print("Final total:", final_total)
 
-    transfer(alice, bob, 100)  # Fixed: Corrected the sign of the amount
+    transfer(alice, bob, 100) 
     print("Alice balance:", alice.balance)
     print("Bob balance:", bob.balance)
 
