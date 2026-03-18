@@ -33,12 +33,13 @@ def add_user():
 
 @app.route("/delete_user", methods=["POST"])
 def delete_user():
-
     token = request.headers.get("Authorization")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "Unauthorized"}), 403
 
     user_id = request.json.get("id")
 
-    cursor.execute(f"DELETE FROM users WHERE id = {user_id}")
+    cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
 
     return jsonify({"message": "User deleted"})
@@ -48,10 +49,14 @@ def delete_user():
 def ping_host():
     host = request.args.get("host")
 
+    # Validate host to prevent command injection
+    if not host or ".." in host or "/" in host:
+        return jsonify({"error": "Invalid host"}), 400
+
     result = subprocess.getoutput(f"ping -c 1 {host}")
 
     return jsonify({"output": result})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
