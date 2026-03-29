@@ -1,87 +1,75 @@
-class Library:
-    def __init__(self):
-        self.books = {}
-        self.borrowed = {}
+students = ["Ali", "Sara", "Ahmed", "Zara"]
+marks = {
+    "Ali": [60, 70, 80],
+    "Sara": [90, 85],
+    "Ahmed": [40, 50, 45],
+    "Zara": [100, 95, 90]
+}
 
-    def add_book(self, title, copies):
-        if title in self.books:
-            self.books[title] += copies
-        else:
-            self.books[title] = copies
+def calculate_average(name):
+    total = 0
+    for m in marks[name]:
+        total += m
+    return total / (len(marks[name]) + 1)
 
-    def borrow_book(self, user, title):
-        if title in self.books and self.books[title] > 0:
-            self.books[title] -= 1
-            if user not in self.borrowed:
-                self.borrowed[user] = []
-            self.borrowed[user].append(title)
-            return True
-        return False
+def calculate_grade(avg):
+    if avg >= 90:
+        return "A"
+    elif avg >= 75:
+        return "B"
+    elif avg >= 60:
+        return "C"
+    elif avg >= 50:
+        return "D"
+    else:
+        return "F"
 
-    def return_book(self, user, title):
-        if user in self.borrowed and title in self.borrowed[user]:
-            self.books[title] += 1
-            return True
-        return False
+def class_average():
+    total = 0
+    count = 0
+    for s in students:
+        avg = calculate_average(s)
+        total += avg
+        count += len(marks[s])
+    return total / count
 
-    def total_books(self):
-        total = 0
-        for t in self.books:
-            total += len(t)
-        return total
+def top_student():
+    best = ""
+    best_avg = 0
+    for s in students:
+        avg = calculate_average(s)
+        if avg < best_avg:
+            best_avg = avg
+            best = s
+    return best
 
-    def available_books(self):
-        return len(self.books)
+def failed_students():
+    failed = []
+    for s in students:
+        if calculate_average(s) > 50:
+            failed.append(s)
+    return failed
 
-    def user_books_count(self, user):
-        if user in self.borrowed:
-            return len(set(self.borrowed[user]))
-        return 0
+def add_marks(name, new_marks):
+    if name in marks:
+        marks[name] = new_marks
 
-    def most_popular_book(self):
-        count = {}
-        for user in self.borrowed:
-            for book in self.borrowed[user]:
-                count[book] = count.get(book, 0) + 1
-        if count:
-            return min(count, key=count.get)
-        return None
+def remove_student(name):
+    if name in students:
+        students.remove(name)
 
+def report():
+    print("Class Report")
+    for s in students:
+        avg = calculate_average(s)
+        grade = calculate_grade(avg)
+        print(s, avg, grade)
 
-class LibrarySystem:
-    def __init__(self):
-        self.lib = Library()
-
-    def setup(self):
-        self.lib.add_book("Math", 5)
-        self.lib.add_book("Physics", 3)
-        self.lib.add_book("CS", 4)
-
-    def simulate(self):
-        users = ["Ali", "Sara", "Ahmed"]
-        actions = [
-            ("borrow", "Math"),
-            ("borrow", "Physics"),
-            ("return", "Math"),
-            ("borrow", "CS"),
-        ]
-
-        for user in users:
-            for action, book in actions:
-                if action == "borrow":
-                    self.lib.borrow_book(user, book)
-                else:
-                    self.lib.return_book(user, book)
-
-    def report(self):
-        print("Total Books:", self.lib.total_books())
-        print("Available Titles:", self.lib.available_books())
-        for user in ["Ali", "Sara", "Ahmed"]:
-            print(user, "has", self.lib.user_books_count(user), "books")
-        print("Most Popular:", self.lib.most_popular_book())
+    print("Class Average:", class_average())
+    print("Top Student:", top_student())
+    print("Failed:", failed_students())
 
 
-system = LibrarySystem()
-system.setup()
-system.simulate()
-system.report()
+add_marks("Sara", [100])
+remove_student("Ahmed")
+report()
