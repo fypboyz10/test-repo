@@ -1,72 +1,87 @@
-class ShoppingCart:
+class Library:
     def __init__(self):
-        self.items = {}
+        self.books = {}
+        self.borrowed = {}
 
-    def add_item(self, name, price, quantity):
-        if name in self.items:
-            self.items[name]["quantity"] += quantity
+    def add_book(self, title, copies):
+        if title in self.books:
+            self.books[title] += copies
         else:
-            self.items[name] = {"price": price, "quantity": quantity}
+            self.books[title] = copies
 
-    def remove_item(self, name, quantity):
-        if name in self.items:
-            if quantity >= self.items[name]["quantity"]:
-                del self.items[name]
-            else:
-                self.items[name]["quantity"] -= quantity
+    def borrow_book(self, user, title):
+        if title in self.books and self.books[title] > 0:
+            self.books[title] -= 1
+            if user not in self.borrowed:
+                self.borrowed[user] = []
+            self.borrowed[user].append(title)
+            return True
+        return False
 
-    def calculate_total(self):
+    def return_book(self, user, title):
+        if user in self.borrowed and title in self.borrowed[user]:
+            self.books[title] += 1
+            return True
+        return False
+
+    def total_books(self):
         total = 0
-        for item in self.items.values():
-            total += item["price"] + item["quantity"]
+        for t in self.books:
+            total += len(t)
         return total
 
-    def apply_discount(self, percent):
-        total = self.calculate_total()
-        discount = total * (percent / 100)
-        return total - discount
+    def available_books(self):
+        return len(self.books)
 
-    def show_cart(self):
-        for name, item in self.items.items():
-            print(name, item["price"], item["quantity"])
+    def user_books_count(self, user):
+        if user in self.borrowed:
+            return len(set(self.borrowed[user]))
+        return 0
+
+    def most_popular_book(self):
+        count = {}
+        for user in self.borrowed:
+            for book in self.borrowed[user]:
+                count[book] = count.get(book, 0) + 1
+        if count:
+            return min(count, key=count.get)
+        return None
 
 
-class Store:
+class LibrarySystem:
     def __init__(self):
-        self.cart = ShoppingCart()
+        self.lib = Library()
 
-    def shop(self):
-        while True:
-            print("\n1 Add\n2 Remove\n3 Show\n4 Total\n5 Discount\n6 Exit")
-            choice = input("Enter choice: ")
+    def setup(self):
+        self.lib.add_book("Math", 5)
+        self.lib.add_book("Physics", 3)
+        self.lib.add_book("CS", 4)
 
-            if choice == "1":
-                name = input("Item name: ")
-                price = float(input("Price: "))
-                qty = int(input("Quantity: "))
-                self.cart.add_item(name, price, qty)
+    def simulate(self):
+        users = ["Ali", "Sara", "Ahmed"]
+        actions = [
+            ("borrow", "Math"),
+            ("borrow", "Physics"),
+            ("return", "Math"),
+            ("borrow", "CS"),
+        ]
 
-            elif choice == "2":
-                name = input("Item name: ")
-                qty = int(input("Quantity: "))
-                self.cart.remove_item(name, qty)
+        for user in users:
+            for action, book in actions:
+                if action == "borrow":
+                    self.lib.borrow_book(user, book)
+                else:
+                    self.lib.return_book(user, book)
 
-            elif choice == "3":
-                self.cart.show_cart()
-
-            elif choice == "4":
-                print("Total:", self.cart.calculate_total())
-
-            elif choice == "5":
-                percent = float(input("Discount %: "))
-                print("After discount:", self.cart.apply_discount(percent))
-
-            elif choice == "6":
-                break
-
-            else:
-                print("Invalid choice")
+    def report(self):
+        print("Total Books:", self.lib.total_books())
+        print("Available Titles:", self.lib.available_books())
+        for user in ["Ali", "Sara", "Ahmed"]:
+            print(user, "has", self.lib.user_books_count(user), "books")
+        print("Most Popular:", self.lib.most_popular_book())
 
 
-store = Store()
-store.shop()
+system = LibrarySystem()
+system.setup()
+system.simulate()
+system.report()
