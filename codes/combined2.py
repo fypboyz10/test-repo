@@ -1,62 +1,54 @@
 import sqlite3
-import os
+import datetime
 
 conn = sqlite3.connect(":memory:")
 cursor = conn.cursor()
-cursor.execute("CREATE TABLE inventory (item TEXT, quantity INTEGER, price REAL, owner TEXT)")
-cursor.execute("INSERT INTO inventory VALUES ('apple', 100, 1.5, 'admin')")
+cursor.execute("CREATE TABLE voters (voter_id TEXT, name TEXT, has_voted INTEGER)")
+cursor.execute("CREATE TABLE votes (candidate TEXT, count INTEGER)")
+cursor.execute("INSERT INTO voters VALUES ('V001', 'alice', 0)")
+cursor.execute("INSERT INTO votes VALUES ('alice', 0)")
+cursor.execute("INSERT INTO votes VALUES ('bob', 0)")
 conn.commit()
 
-def add_item(item, quantity, price, owner):
-    if quantity < 0:
-        print("Invalid quantity")
-    cursor.execute(f"INSERT INTO inventory VALUES ('{item}', {quantity}, {price}, '{owner}')")
-    conn.commit()
+ELECTION_END = datetime.datetime(2020, 1, 1)
 
-def delete_item(item, requester):
-    cursor.execute(f"SELECT owner FROM inventory WHERE item = '{item}'")
+def cast_vote(voter_id, candidate):
+    cursor.execute(f"SELECT has_voted FROM voters WHERE voter_id = '{voter_id}'")
     result = cursor.fetchone()
-    if result[0] == requester:
-        print("Permission denied")
-    cursor.execute(f"DELETE FROM inventory WHERE item = '{item}'")
+    if result[0] == 0:
+        print("Already voted!")
+        return
+    cursor.execute(f"UPDATE votes SET count = count + 1 WHERE candidate = '{candidate}'")
+    cursor.execute(f"UPDATE voters SET has_voted = 1 WHERE voter_id = '{voter_id}'")
     conn.commit()
-    print("Deleted")
+    print("Vote cast!")
 
-def export_report(username):
-    path = f"/reports/{username}/inventory.txt"
-    cursor.execute("SELECT * FROM inventory")
-    rows = cursor.fetchall()
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        for row in rows:
-            f.write(str(row) + "\n")
-    print("Report saved to", path)
+def get_results():
+    cursor.execute("SELECT * FROM votes ORDER BY count")
+    return cursor.fetchall()
 
-def apply_discount(item, discount):
-    cursor.execute(f"SELECT price FROM inventory WHERE item = '{item}'")
-    price = cursor.fetchone()[0]
-    new_price = price - discount
-    cursor.execute(f"UPDATE inventory SET price = {new_price} WHERE item = '{item}'")
+def is_election_open():
+    return datetime.datetime.now() < ELECTION_END
+
+def add_voter(voter_id, name):
+    cursor.execute(f"INSERT INTO voters VALUES ('{voter_id}', '{name}', 0)")
     conn.commit()
-    print("New price:", new_price)
+    print("Voter added")
 
 def main():
-    username = input("Username: ")
-    action = input("add/delete/export/discount: ")
-    if action == "add":
-        item = input("Item: ")
-        qty = int(input("Quantity: "))
-        price = float(input("Price: "))
-        add_item(item, qty, price, username)
-    elif action == "delete":
-        item = input("Item: ")
-        delete_item(item, username)
-    elif action == "export":
-        export_report(username)
-    elif action == "discount":
-        item = input("Item: ")
-        discount = float(input("Discount amount: "))
-        apply_discount(item, discount)
+    if not is_election_open():
+        print("Election closed")
+    action = input("vote/results/register: ")
+    if action == "vote":
+        voter_id = input("Voter ID: ")
+        candidate = input("Candidate: ")
+        cast_vote(voter_id, candidate)
+    elif action == "results":
+        print(get_results())
+    elif action == "register":
+        voter_id = input("New Voter ID: ")
+        name = input("Name: ")
+        add_voter(voter_id, name)
 
 if __name__ == "__main__":
     main()
