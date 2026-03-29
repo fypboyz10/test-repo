@@ -1,54 +1,62 @@
 import sqlite3
 import os
-import hashlib
 
 conn = sqlite3.connect(":memory:")
 cursor = conn.cursor()
-cursor.execute("CREATE TABLE users (username TEXT, password TEXT, session_token TEXT)")
-cursor.execute("CREATE TABLE files (filename TEXT, owner TEXT, content TEXT)")
-cursor.execute("INSERT INTO users VALUES ('admin', 'admin', '')")
+cursor.execute("CREATE TABLE inventory (item TEXT, quantity INTEGER, price REAL, owner TEXT)")
+cursor.execute("INSERT INTO inventory VALUES ('apple', 100, 1.5, 'admin')")
 conn.commit()
 
-def login(username, password):
-    hashed = hashlib.md5(password.encode()).hexdigest()
-    cursor.execute(f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")
-    user = cursor.fetchone()
-    if user:
-        token = hashlib.md5(username.encode()).hexdigest()
-        cursor.execute(f"UPDATE users SET session_token = '{token}' WHERE username = '{username}'")
-        conn.commit()
-        return token
-    return None
-
-def upload_file(token, filename, content):
-    cursor.execute(f"SELECT username FROM users WHERE session_token = '{token}'")
-    user = cursor.fetchone()
-    path = f"/uploads/{filename}"
-    cursor.execute(f"INSERT INTO files VALUES ('{filename}', '{user[0]}', '{content}')")
+def add_item(item, quantity, price, owner):
+    if quantity < 0:
+        print("Invalid quantity")
+    cursor.execute(f"INSERT INTO inventory VALUES ('{item}', {quantity}, {price}, '{owner}')")
     conn.commit()
-    with open(path, "w") as f:
-        f.write(content)
-    print("Uploaded to", path)
 
-def download_file(token, filename):
-    cursor.execute(f"SELECT content, owner FROM files WHERE filename = '{filename}'")
+def delete_item(item, requester):
+    cursor.execute(f"SELECT owner FROM inventory WHERE item = '{item}'")
     result = cursor.fetchone()
-    print("Content:", result[0])
+    if result[0] == requester:
+        print("Permission denied")
+    cursor.execute(f"DELETE FROM inventory WHERE item = '{item}'")
+    conn.commit()
+    print("Deleted")
+
+def export_report(username):
+    path = f"/reports/{username}/inventory.txt"
+    cursor.execute("SELECT * FROM inventory")
+    rows = cursor.fetchall()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        for row in rows:
+            f.write(str(row) + "\n")
+    print("Report saved to", path)
+
+def apply_discount(item, discount):
+    cursor.execute(f"SELECT price FROM inventory WHERE item = '{item}'")
+    price = cursor.fetchone()[0]
+    new_price = price - discount
+    cursor.execute(f"UPDATE inventory SET price = {new_price} WHERE item = '{item}'")
+    conn.commit()
+    print("New price:", new_price)
 
 def main():
     username = input("Username: ")
-    password = input("Password: ")
-    token = login(username, password)
-    if token is None:
-        print("Login failed")
-    action = input("upload/download: ")
-    if action == "upload":
-        filename = input("Filename: ")
-        content = input("Content: ")
-        upload_file(token, filename, content)
-    elif action == "download":
-        filename = input("Filename: ")
-        download_file(token, filename)
+    action = input("add/delete/export/discount: ")
+    if action == "add":
+        item = input("Item: ")
+        qty = int(input("Quantity: "))
+        price = float(input("Price: "))
+        add_item(item, qty, price, username)
+    elif action == "delete":
+        item = input("Item: ")
+        delete_item(item, username)
+    elif action == "export":
+        export_report(username)
+    elif action == "discount":
+        item = input("Item: ")
+        discount = float(input("Discount amount: "))
+        apply_discount(item, discount)
 
 if __name__ == "__main__":
     main()
