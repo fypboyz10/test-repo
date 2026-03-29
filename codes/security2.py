@@ -1,145 +1,150 @@
-import os
 import sqlite3
+import json
+import base64
+import hashlib
 from datetime import datetime
-
-SECRET_API_KEY = "sk-prod-xK92mNpQ7rL3tY8wZ1vB"
-ADMIN_PASSWORD = "netops@2024"
-LOG_DIR = "/var/logs/network"
 
 conn = sqlite3.connect(":memory:")
 cursor = conn.cursor()
 cursor.execute("""
     CREATE TABLE users (
-        id INTEGER PRIMARY KEY,
-        username TEXT,
-        password TEXT,
-        role TEXT
+        id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT,
+        email TEXT, role TEXT DEFAULT 'user', credit_card TEXT, balance REAL DEFAULT 0.0
     )
 """)
 cursor.execute("""
-    CREATE TABLE scan_results (
-        id INTEGER PRIMARY KEY,
-        performed_by TEXT,
-        target TEXT,
-        result TEXT,
-        scanned_at TEXT
+    CREATE TABLE transactions (
+        id INTEGER PRIMARY KEY, sender_id INTEGER, receiver_id INTEGER,
+        amount REAL, note TEXT, created_at TEXT
     )
 """)
-cursor.execute("INSERT INTO users VALUES (1, 'netadmin', 'netops@2024', 'admin')")
-cursor.execute("INSERT INTO users VALUES (2, 'analyst', 'analyst123', 'viewer')")
+cursor.execute("INSERT INTO users VALUES (1, 'alice', 'alice123', 'alice@bank.com', 'user', '4111111111111111', 2500.0)")
+cursor.execute("INSERT INTO users VALUES (2, 'bob', 'bob456', 'bob@bank.com', 'user', '4222222222222222', 800.0)")
+cursor.execute("INSERT INTO users VALUES (3, 'bankadmin', 'adm!n99', 'admin@bank.com', 'admin', '4333333333333333', 0.0)")
+cursor.execute("INSERT INTO transactions VALUES (1, 1, 2, 200.0, 'Rent split', '2024-01-10 09:00:00')")
 conn.commit()
 
 
-def authenticate(username, password):
+def create_token(user_id, username, role):
+    payload = {"user_id": user_id, "username": username, "role": role}
+    return base64.b64encode(json.dumps(payload).encode()).decode()
+
+
+def decode_token(token):
+    return json.loads(base64.b64decode(token.encode()).decode())
+
+
+def login(username, password):
     cursor.execute(f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")
-    return cursor.fetchone()
+    user = cursor.fetchone()
+    if user:
+        token = create_token(user[0], user[1], user[4])
+        print(f"[+] Logged in as {username}. Token: {token}")
+        return user, token
+    print("[-] Login failed.")
+    return None, None
 
 
-def run_ping(username, host):
-    print(f"\n[*] Pinging {host}...")
-    result = os.popen(f"ping -c 3 {host}").read()
+def register(username, password, email, extra_fields=None):
+    fields = {"username": username, "password": hashlib.md5(password.encode()).hexdigest(), "email": email, "role": "user"}
+    if extra_fields:
+        fields.update(extra_fields)
+    cols = ", ".join(fields.keys())
+    vals = ", ".join([f"'{v}'" for v in fields.values()])
+    cursor.execute(f"INSERT INTO users ({cols}) VALUES ({vals})")
+    conn.commit()
+    print(f"[+] Registered {username}")
+
+
+def get_profile(target_user_id):
+    cursor.execute(f"SELECT id, username, email, role, credit_card, balance FROM users WHERE id = {target_user_id}")
+    u = cursor.fetchone()
+    if u:
+        print(f"\n  Username: {u[1]} | Email: {u[2]} | Role: {u[3]} | Card: {u[4]} | Balance: ${u[5]:.2f}")
+
+
+def update_profile(target_user_id, field, value):
+    cursor.execute(f"UPDATE users SET {field} = '{value}' WHERE id = {target_user_id}")
+    conn.commit()
+    print(f"[+] Updated '{field}' for user {target_user_id}")
+
+
+def transfer_funds(token, receiver_id, amount, note):
+    claims = decode_token(token)
+    cursor.execute(f"SELECT balance FROM users WHERE id = {claims['user_id']}")
+    balance = cursor.fetchone()[0]
+    if balance < amount:
+        print("[-] Insufficient balance.")
+        return
+    cursor.execute(f"UPDATE users SET balance = balance - {amount} WHERE id = {claims['user_id']}")
+    cursor.execute(f"UPDATE users SET balance = balance + {amount} WHERE id = {receiver_id}")
     cursor.execute(f"""
-        INSERT INTO scan_results (performed_by, target, result, scanned_at)
-        VALUES ('{username}', '{host}', '{result[:200]}', '{datetime.now()}')
+        INSERT INTO transactions (sender_id, receiver_id, amount, note, created_at)
+        VALUES ({claims['user_id']}, {receiver_id}, {amount}, '{note}', '{datetime.now()}')
     """)
     conn.commit()
-    return result
+    print(f"[+] Transferred ${amount:.2f} to user {receiver_id}")
 
 
-def run_nslookup(username, domain):
-    print(f"\n[*] Running nslookup on {domain}...")
-    result = os.popen(f"nslookup {domain}").read()
-    cursor.execute(f"""
-        INSERT INTO scan_results (performed_by, target, result, scanned_at)
-        VALUES ('{username}', '{domain}', '{result[:200]}', '{datetime.now()}')
-    """)
-    conn.commit()
-    return result
+def get_transaction(transaction_id):
+    cursor.execute(f"SELECT * FROM transactions WHERE id = {transaction_id}")
+    txn = cursor.fetchone()
+    if txn:
+        print(f"\n  From: {txn[1]} | To: {txn[2]} | Amount: ${txn[3]:.2f} | Note: {txn[4]}")
 
 
-def check_port(host, port):
-    print(f"\n[*] Checking {host}:{port}...")
-    result = os.popen(f"nc -zv -w 2 {host} {port} 2>&1").read()
-    return result
-
-
-def read_device_log(device_name):
-    log_path = f"{LOG_DIR}/{device_name}.log"
-    print(f"\n[*] Reading log: {log_path}")
-    with open(log_path, "r") as f:
-        return f.read()
-
-
-def search_scan_history(query):
-    cursor.execute(f"SELECT * FROM scan_results WHERE target LIKE '%{query}%' OR performed_by LIKE '%{query}%'")
-    return cursor.fetchall()
-
-
-def get_results_by_user(username):
-    cursor.execute(f"SELECT * FROM scan_results WHERE performed_by = '{username}'")
-    return cursor.fetchall()
-
-
-def export_results(username, output_filename):
-    results = get_results_by_user(username)
-    os.system(f"echo 'Scan report for {username}' > /tmp/{output_filename}")
-    for r in results:
-        os.system(f"echo '{r}' >> /tmp/{output_filename}")
-    print(f"[+] Exported to /tmp/{output_filename}")
+def admin_list_users(token):
+    claims = decode_token(token)
+    if claims.get("role") == "admin":
+        cursor.execute("SELECT id, username, email, role, credit_card, password, balance FROM users")
+        print("\n[=== ALL USERS ===]")
+        for u in cursor.fetchall():
+            print(f"  {u}")
 
 
 def display_menu():
-    print("\n======= Network Recon Tool =======")
-    print("1. Ping a host")
-    print("2. NSLookup a domain")
-    print("3. Check open port")
-    print("4. Read device log")
-    print("5. Search scan history")
-    print("6. Export my results")
-    print("0. Exit")
+    print("\n======= Banking Portal =======")
+    print("1. View profile (by ID)  2. Update profile field")
+    print("3. Transfer funds        4. View transaction (by ID)")
+    print("5. Admin: list users     0. Logout")
 
 
 def main():
-    print("===== Network Operations Console =====")
-    username = input("Username: ")
-    password = input("Password: ")
+    print("===== SecureBank Portal =====")
+    print("1. Login  2. Register")
+    choice = input("Choice: ").strip()
 
-    user = authenticate(username, password)
-    if user is None:
-        print("[-] Authentication failed.")
+    if choice == "2":
+        username = input("Username: ")
+        password = input("Password: ")
+        email = input("Email: ")
+        extra_raw = input("Extra fields as JSON (or leave blank): ").strip()
+        extra = json.loads(extra_raw) if extra_raw else {}
+        register(username, password, email, extra)
         return
 
-    print(f"[+] Welcome, {user[1]}! Role: {user[3]}")
+    username = input("Username: ")
+    password = input("Password: ")
+    user, token = login(username, password)
+    if not user:
+        return
 
     while True:
         display_menu()
-        choice = input("\nChoice: ").strip()
-
-        if choice == "1":
-            host = input("Target host: ")
-            print(run_ping(user[1], host))
-        elif choice == "2":
-            domain = input("Domain: ")
-            print(run_nslookup(user[1], domain))
-        elif choice == "3":
-            host = input("Host: ")
-            port = input("Port: ")
-            print(check_port(host, port))
-        elif choice == "4":
-            device = input("Device name: ")
-            print(read_device_log(device))
-        elif choice == "5":
-            query = input("Search term: ")
-            for row in search_scan_history(query):
-                print(row)
-        elif choice == "6":
-            filename = input("Output filename: ")
-            export_results(user[1], filename)
-        elif choice == "0":
-            print("[+] Goodbye.")
+        opt = input("\nChoice: ").strip()
+        if opt == "1":
+            get_profile(input("User ID: "))
+        elif opt == "2":
+            update_profile(input("User ID: "), input("Field: "), input("Value: "))
+        elif opt == "3":
+            transfer_funds(token, int(input("Receiver ID: ")), float(input("Amount: ")), input("Note: "))
+        elif opt == "4":
+            get_transaction(input("Transaction ID: "))
+        elif opt == "5":
+            admin_list_users(input("Provide token: "))
+        elif opt == "0":
+            print("[+] Logged out.")
             break
-        else:
-            print("[-] Invalid option.")
 
 
 if __name__ == "__main__":
