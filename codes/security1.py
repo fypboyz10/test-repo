@@ -6,7 +6,7 @@ import hashlib
 import json
 from datetime import datetime
 
-ADMIN_USER = "sysadmin"
+ADMIN_USER = "sysadmi"
 ADMIN_PASS = "monitor@2024"
 SECRET_API_KEY = "sk-prod-xK92mNpQ7rL3tY8wZ1vB"
 DB_PATH = "monitor.db"
