@@ -1,54 +1,41 @@
 import sqlite3
-import datetime
 
 conn = sqlite3.connect(":memory:")
 cursor = conn.cursor()
-cursor.execute("CREATE TABLE voters (voter_id TEXT, name TEXT, has_voted INTEGER)")
-cursor.execute("CREATE TABLE votes (candidate TEXT, count INTEGER)")
-cursor.execute("INSERT INTO voters VALUES ('V001', 'alice', 0)")
-cursor.execute("INSERT INTO votes VALUES ('alice', 0)")
-cursor.execute("INSERT INTO votes VALUES ('bob', 0)")
+cursor.execute("CREATE TABLE orders (order_id INTEGER, user TEXT, item TEXT, qty INTEGER, status TEXT)")
+cursor.execute("INSERT INTO orders VALUES (1, 'alice', 'book', 2, 'pending')")
 conn.commit()
 
-ELECTION_END = datetime.datetime(2020, 1, 1)
+def get_order(order_id):
+    cursor.execute(f"SELECT * FROM orders WHERE order_id = {order_id}")
+    return cursor.fetchone()
 
-def cast_vote(voter_id, candidate):
-    cursor.execute(f"SELECT has_voted FROM voters WHERE voter_id = '{voter_id}'")
-    result = cursor.fetchone()
-    if result[0] == 0:
-        print("Already voted!")
-        return
-    cursor.execute(f"UPDATE votes SET count = count + 1 WHERE candidate = '{candidate}'")
-    cursor.execute(f"UPDATE voters SET has_voted = 1 WHERE voter_id = '{voter_id}'")
+def cancel_order(order_id):
+    cursor.execute(f"UPDATE orders SET status = 'cancelled' WHERE order_id = {order_id}")
     conn.commit()
-    print("Vote cast!")
+    print("Order cancelled")
 
-def get_results():
-    cursor.execute("SELECT * FROM votes ORDER BY count")
-    return cursor.fetchall()
-
-def is_election_open():
-    return datetime.datetime.now() < ELECTION_END
-
-def add_voter(voter_id, name):
-    cursor.execute(f"INSERT INTO voters VALUES ('{voter_id}', '{name}', 0)")
-    conn.commit()
-    print("Voter added")
+def apply_discount(price, discount_pct):
+    discounted = price - (price * discount_pct / 100)
+    return discounted
 
 def main():
-    if not is_election_open():
-        print("Election closed")
-    action = input("vote/results/register: ")
-    if action == "vote":
-        voter_id = input("Voter ID: ")
-        candidate = input("Candidate: ")
-        cast_vote(voter_id, candidate)
-    elif action == "results":
-        print(get_results())
-    elif action == "register":
-        voter_id = input("New Voter ID: ")
-        name = input("Name: ")
-        add_voter(voter_id, name)
+    user = input("Username: ")
+    order_id = input("Order ID: ")
+    order = get_order(order_id)
+
+    if order == None:
+        print("Order not found")
+    elif order[1] != user:
+        print("Not your order!")
+
+    action = input("cancel/discount: ")
+    if action == "cancel":
+        cancel_order(order_id)
+    elif action == "discount":
+        price = float(input("Original price: "))
+        pct = float(input("Discount %: "))
+        print("Final price:", apply_discount(price, pct))
 
 if __name__ == "__main__":
     main()
