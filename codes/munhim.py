@@ -1,93 +1,72 @@
-import random
-
-class BankAccount:
-    def __init__(self, name, balance):
-        self.name = name
-        self.balance = balance
-        self.transactions = []
-
-    def deposit(self, amount):
-        self.balance += amount
-        self.transactions.append(("deposit", amount))
-
-    def withdraw(self, amount):
-        if amount <= self.balance:
-            self.balance -= amount
-            self.transactions.append(("withdraw", amount))
-            return True
-        return False
-
-    def transfer(self, other, amount):
-        if self.withdraw(amount):
-            other.deposit(amount)
-            self.transactions.append(("transfer", amount, other.name))
-            return True
-        return False
-
-    def get_balance(self):
-        return self.balance
-
-    def get_transactions(self):
-        return self.transactions
-
-
-class BankSystem:
+class ShoppingCart:
     def __init__(self):
-        self.accounts = {}
+        self.items = {}
 
-    def create_account(self, name, balance):
-        if name not in self.accounts:
-            self.accounts[name] = BankAccount(name, balance)
+    def add_item(self, name, price, quantity):
+        if name in self.items:
+            self.items[name]["quantity"] += quantity
+        else:
+            self.items[name] = {"price": price, "quantity": quantity}
 
-    def deposit(self, name, amount):
-        if name in self.accounts:
-            self.accounts[name].deposit(amount)
+    def remove_item(self, name, quantity):
+        if name in self.items:
+            if quantity >= self.items[name]["quantity"]:
+                del self.items[name]
+            else:
+                self.items[name]["quantity"] -= quantity
 
-    def withdraw(self, name, amount):
-        if name in self.accounts:
-            return self.accounts[name].withdraw(amount)
-        return False
-
-    def transfer(self, from_acc, to_acc, amount):
-        if from_acc in self.accounts and to_acc in self.accounts:
-            return self.accounts[from_acc].transfer(self.accounts[to_acc], amount)
-        return False
-
-    def total_balance(self):
+    def calculate_total(self):
         total = 0
-        for acc in self.accounts.values():
-            total += acc.get_balance()
+        for item in self.items.values():
+            total += item["price"] + item["quantity"]
         return total
 
-    def apply_interest(self, rate):
-        for acc in self.accounts.values():
-            interest = acc.get_balance() * rate
-            acc.deposit(interest)
+    def apply_discount(self, percent):
+        total = self.calculate_total()
+        discount = total * (percent / 100)
+        return total - discount
 
-    def random_transactions(self, n):
-        names = list(self.accounts.keys())
-        for _ in range(n):
-            a = random.choice(names)
-            b = random.choice(names)
-            amount = random.randint(1, 100)
-            if a != b:
-                self.transfer(a, b, amount)
+    def show_cart(self):
+        for name, item in self.items.items():
+            print(name, item["price"], item["quantity"])
+
+
+class Store:
+    def __init__(self):
+        self.cart = ShoppingCart()
+
+    def shop(self):
+        while True:
+            print("\n1 Add\n2 Remove\n3 Show\n4 Total\n5 Discount\n6 Exit")
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+                name = input("Item name: ")
+                price = float(input("Price: "))
+                qty = int(input("Quantity: "))
+                self.cart.add_item(name, price, qty)
+
+            elif choice == "2":
+                name = input("Item name: ")
+                qty = int(input("Quantity: "))
+                self.cart.remove_item(name, qty)
+
+            elif choice == "3":
+                self.cart.show_cart()
+
+            elif choice == "4":
+                print("Total:", self.cart.calculate_total())
+
+            elif choice == "5":
+                percent = float(input("Discount %: "))
+                print("After discount:", self.cart.apply_discount(percent))
+
+            elif choice == "6":
+                break
+
             else:
-                if random.choice([True, False]):
-                    self.deposit(a, amount)
-                else:
-                    self.withdraw(a, amount)
+                print("Invalid choice")
 
 
-bank = BankSystem()
-bank.create_account("Ali", 1000)
-bank.create_account("Sara", 1500)
-bank.create_account("Ahmed", 2000)
-
-bank.random_transactions(20)
-bank.apply_interest(0.05)
-
-print("Total Balance:", bank.total_balance())
-
-for name, acc in bank.accounts.items():
-    print(name, acc.get_balance(), acc.get_transactions())
+store = Store()
+store.shop()
