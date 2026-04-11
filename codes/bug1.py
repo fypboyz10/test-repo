@@ -69,6 +69,8 @@ def report():
     print("Top Student:", top_student())
     print("Failed:", failed_students())
 
+    print("end of file")
+
 
 add_marks("Sara", [100])
 remove_student("Ahmed")
