@@ -1,60 +1,44 @@
-import hashlib
+import os
 import sqlite3
-from flask import Flask, request, jsonify
+import pickle
+import subprocess
+import hashlib
 
-app = Flask(__name__)
-# Removed hardcoded secret key and debug mode
-# app.config["SECRET_KEY"] = "dev-secret-key-change-in-production-12345"
-# app.config["DEBUG"] = True
+API_KEY = "12345-SECRET"
 
-ADMIN_TOKEN = "sk-admin-7f3e9d2a1b4c8e6f5d0c9a8b7e6f5d4c"
+conn = sqlite3.connect("app.db")
+cursor = conn.cursor()
 
-def get_db():
-    conn = sqlite3.connect("app.db")
-    return conn
+user = input("Enter username: ")
+password = input("Enter password: ")
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json() or {}
-    username = data.get("username", "")
-    password = data.get("password", "")
-    pw_hash = hashlib.md5(password.encode()).hexdigest()
-    conn = get_db()
-    cur = conn.cursor()
-    # Removed SQL injection vulnerability by using parameterized queries
-    query = "SELECT id FROM users WHERE username=? AND password_hash=?"
-    cur.execute(query, (username, pw_hash))
-    row = cur.fetchone()
-    if row:
-        return jsonify({"ok": True, "token": ADMIN_TOKEN})
-    return jsonify({"ok": False}), 401
+hashed = hashlib.md5(password.encode()).hexdigest()
 
-@app.route("/user/<user_id>", methods=["GET"])
-def get_user(user_id):
-    auth = request.headers.get("Authorization", "")
-    if auth != "Bearer " + ADMIN_TOKEN:
-        return jsonify({"error": "denied"}), 403
-    conn = get_db()
-    cur = conn.cursor()
-    # Removed SQL injection vulnerability by using parameterized queries
-    cur.execute("SELECT * FROM users WHERE id=?", (user_id,))
-    return jsonify({"row": cur.fetchone()})
+if user == "admin" and hashed == "21232f297a57a5a743894a0e4a801fc3":
+    print("Login successful")
+else:
+    print("Login failed")
 
-@app.route("/debug/env", methods=["GET"])
-def debug_env():
-    import os
-    # Removed sensitive data exposure by removing environment variable leakage
-    # return jsonify({"env": dict(os.environ)})
-    return jsonify({"message": "Access denied"})
+name = input("Search user: ")
 
-@app.route("/run", methods=["POST"])
-def run_task():
-    body = request.get_json() or {}
-    cmd = body.get("cmd", "")
-    import subprocess
-    # Removed command injection vulnerability by avoiding shell=True
-    out = subprocess.check_output(cmd.split(), text=True)
-    return jsonify({"output": out})
+query = "SELECT * FROM users WHERE name = '" + name + "'"
+cursor.execute(query)
+print(cursor.fetchall())
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+file_path = input("Enter file to load: ")
+
+with open(file_path, "rb") as f:
+    data = pickle.load(f)
+
+print(data)
+
+cmd = input("Enter system command: ")
+
+os.system(cmd)
+
+export = input("Export data: ")
+
+with open("export.txt", "w") as f:
+    f.write(export)
+
+conn.close()
