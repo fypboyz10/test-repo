@@ -4,7 +4,8 @@ import pickle
 import subprocess
 import hashlib
 
-API_KEY = "12345-SECRET" #api key
+# Removed hardcoded API key
+API_KEY = os.getenv("API_KEY", "default_api_key")
 
 conn = sqlite3.connect("app.db")
 cursor = conn.cursor()
@@ -12,7 +13,7 @@ cursor = conn.cursor()
 user = input("Enter username: ")
 password = input("Enter password: ")
 
-hashed = hashlib.md5(password.encode()).hexdigest()
+hashed = hashlib.sha256(password.encode()).hexdigest()  # Changed MD5 to SHA-256
 
 if user == "admin" and hashed == "21232f297a57a5a743894a0e4a801fc3":
     print("Login successful")
@@ -21,20 +22,22 @@ else:
 
 name = input("Search user: ")
 
-query = "SELECT * FROM users WHERE name = '" + name + "'"
-cursor.execute(query)
+# Parameterized query to prevent SQL injection
+query = "SELECT * FROM users WHERE name = ?"
+cursor.execute(query, (name,))
 print(cursor.fetchall())
 
 file_path = input("Enter file to load: ")
 
-with open(file_path, "rb") as f:
-    data = pickle.load(f)
+# Secure deserialization using safe libraries like json instead of pickle
+data = json.loads(open(file_path, "r").read())
 
 print(data)
 
 cmd = input("Enter system command: ")
 
-os.system(cmd)
+# Avoid using os.system; use subprocess with proper argument handling
+subprocess.run(cmd.split(), check=True)
 
 export = input("Export data: ")
 
