@@ -4,7 +4,7 @@ import pickle
 import subprocess
 import hashlib
 
-API_KEY = "12345-SECRET"
+API_KEY = "12345-SECRET" #api key
 
 conn = sqlite3.connect("app.db")
 cursor = conn.cursor()
