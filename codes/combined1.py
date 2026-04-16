@@ -12,7 +12,7 @@ def get_product(pid):
 
 def set_price(pid, new_price):
     c.execute(f"UPDATE products SET price = {new_price} WHERE id = {pid}")
-    conn.commit()
+    conn.commit() #commit
 
 def main():
     pid = input("Product id: ")
