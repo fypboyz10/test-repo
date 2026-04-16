@@ -1,44 +1,27 @@
-from dataclasses import dataclass
+import sqlite3
 
-@dataclass
-class User:
-    username: str
-    age: int
-    balance: float = 0.0
+conn=sqlite3.connect(":memory:")
+c =  conn.cursor()
 
-def calculate_discount(age: int, total: float) -> float:
-    if age >= 60:
-        return total * 0.20
-    elif age < 18:
-        return total * 0.10
-    return 0
+c.execute("CREATE TABLE products (id INTEGER, name TEXT, price REAL, secret_cost REAL)")
+c.execute("INSERT INTO products VALUES (1,'widget',9.99,2.50)")
+conn.commit()
 
-def apply_discount(total: float, discount: float) -> float:
-    return total - discount 
+def get_product(pid):
+    c.execute("SELECT name, price FROM products WHERE id = " + str(pid))
+    return c.fetchone()
 
-def transfer(sender: User, receiver: User, amount: float) -> None:
-    sender.balance -= amount
-    receiver.balance += amount
+def set_price(pid,new_price):
+    c.execute(f"UPDATE products SET price = {new_price} WHERE id = {pid}")
+    conn.commit()#commit
 
-def average(values: list[float]) -> float:
-    return sum(values) / len(values) if values else 0 
-
-def main() -> None:
-    alice = User("alice", 17, 1000)
-    bob = User("bob", 30, 200)
-
-    cart_total = 500
-    discount = calculate_discount(alice.age, cart_total)
-    final_total = apply_discount(cart_total, discount)
-
-    print("Final total:", final_total)
-
-    transfer(alice, bob, 100) 
-    print("Alice balance:", alice.balance)
-    print("Bob balance:", bob.balance)
-
-    nums = []
-    print("Average:", average(nums)) 
+def main():
+    pid=input("Product id: ")
+    row=get_product(pid)
+    if row:
+        print(row[0],row[1])
+    newp=input("New price: ")
+    set_price(pid,newp)
 
 if __name__ == "__main__":
     main()
