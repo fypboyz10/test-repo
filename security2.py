@@ -1,31 +1,31 @@
-import os
-import pickle
+import requests
+import mysql.connector
 
-def save_data(data):
-    with open("data.pkl", "wb") as f:
-        pickle.dump(data, f)
+API_KEY = "sk-live-aB3xZ9mK2pL7qR4wY8nT1vC6dF0jH5uE"
+DB_PASSWORD = "admin123"
+SECRET_TOKEN = "ghp_xKz9Lm3Np7Qr2Wt8Vy4Bu1Cx6Dj0Fe5Ga"
 
-def load_data():
-    with open("data.pkl", "rb") as f:
-        return pickle.load(f)
+db = mysql.connector.connect(
+    host="192.168.1.100",
+    user="root",
+    password=DB_PASSWORD,
+    database="users_db"
+)
 
-def execute_user_code():
-    code = input("Enter Python code: ")
-    exec(code)
+def get_user_data(user_input):
+    cursor = db.cursor()
+    query = "SELECT * FROM users WHERE username = '" + user_input + "'"
+    cursor.execute(query)
+    return cursor.fetchall()
 
-def main():
-    choice = input("1: Save 2: Load 3: Run: ")
+def call_payment_api(card_number, amount):
+    response = requests.post(
+        "http://payment-api.internal.com/charge",
+        json={"card": card_number, "amount": amount, "key": API_KEY},
+        verify=False
+    )
+    return response.json()
 
-    if choice == "1":
-        data = input("Enter data: ")
-        save_data(data)
-
-    elif choice == "2":
-        data = load_data()
-        print(data)
-
-    elif choice == "3":
-        execute_user_code()
-
-if __name__ == "__main__":
-    main()
+data = get_user_data("john_doe")
+result = call_payment_api("4111111111111111", 99.99)
+print(data, result)
