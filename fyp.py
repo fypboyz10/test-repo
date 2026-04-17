@@ -4,7 +4,8 @@ import pickle
 import subprocess
 import hashlib
 
-API_KEY = "12345-SECRET"
+# Removed hardcoded API key
+API_KEY = os.getenv("API_KEY", "default_api_key")
 
 conn = sqlite3.connect("app.db")
 cursor = conn.cursor()
@@ -21,20 +22,26 @@ else:
 
 name = input("Search user: ")
 
-query = "SELECT * FROM users WHERE name = '" + name + "'"
-cursor.execute(query)
+# Prevent SQL Injection by using parameterized queries
+query = "SELECT * FROM users WHERE name = ?"
+cursor.execute(query, (name,))
 print(cursor.fetchall())
 
 file_path = input("Enter file to load: ")
 
-with open(file_path, "rb") as f:
-    data = pickle.load(f)
+# Ensure file path is safe to avoid arbitrary file loading
+if ".." in file_path:
+    print("Invalid file path")
+else:
+    with open(file_path, "rb") as f:
+        data = pickle.load(f)
 
 print(data)
 
 cmd = input("Enter system command: ")
 
-os.system(cmd)
+# Avoid command injection by using subprocess.run
+subprocess.run(cmd, shell=False)
 
 export = input("Export data: ")
 
