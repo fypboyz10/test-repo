@@ -3,14 +3,16 @@ import sqlite3
 import pickle
 import subprocess
 import hashlib
+from getpass import getpass
 
-API_KEY = "12345-SECRET"
+# Removed hardcoded API key
+API_KEY = None  # This should be set via environment variable or configuration file
 
 conn = sqlite3.connect("app.db")
 cursor = conn.cursor()
 
 user = input("Enter username: ")
-password = input("Enter password: ")
+password = getpass("Enter password: ")  # Changed to use getpass for better security
 
 hashed = hashlib.md5(password.encode()).hexdigest()
 
@@ -21,8 +23,9 @@ else:
 
 name = input("Search user: ")
 
-query = "SELECT * FROM users WHERE name = '" + name + "'"
-cursor.execute(query)
+# Parameterized query to prevent SQL injection
+query = "SELECT * FROM users WHERE name = ?"
+cursor.execute(query, (name,))
 print(cursor.fetchall())
 
 file_path = input("Enter file to load: ")
@@ -34,7 +37,8 @@ print(data)
 
 cmd = input("Enter system command: ")
 
-os.system(cmd)
+# Using subprocess.run with shell=False to prevent command injection
+subprocess.run(cmd.split(), check=True, shell=False)
 
 export = input("Export data: ")
 
